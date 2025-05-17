@@ -19,7 +19,7 @@ pydub
 pycountry
 heroku3
 motor==3.3.2
-pymongo>=4.0.0
+pymongo>=4.6.3
 pillow==9.5.0
 psutil
 wget
