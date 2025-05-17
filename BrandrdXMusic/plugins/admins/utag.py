@@ -1,72 +1,67 @@
 import asyncio
-import random
 from pyrogram import Client, filters
-from pyrogram.enums import ChatType
-from pyrogram.enums import ChatType, ChatMemberStatus
-from pyrogram.errors import UserNotParticipant
-from pyrogram.types import ChatPermissions
 from BrandrdXMusic import app
 from BrandrdXMusic.utils.branded_ban import admin_filter
 
-SPAM_CHATS = {}
+# Menyimpan task yang sedang berjalan per chat
+UTAG_TASKS = {}
 
-
-@app.on_message(
-    filters.command(["utag", "uall"], prefixes=["/", "@", ".", "#"]) & admin_filter
-)
+@app.on_message(filters.command(["utag", "uall"], prefixes=["/", "@", ".", "#"]) & admin_filter)
 async def tag_all_users(_, message):
-    global SPAM_CHATS
     chat_id = message.chat.id
-    if len(message.text.split()) == 1:
-        await message.reply_text(
-            "** ɢɪᴠᴇ sᴏᴍᴇ ᴛᴇxᴛ ᴛᴏ ᴛᴀɢ ᴀʟʟ, ʟɪᴋᴇ »** `@utag Hi Friends`"
-        )
-        return
+    if len(message.command) < 2:
+        return await message.reply_text("**Berikan teks setelah perintah, contoh:** `/utag Hai jalang!`")
 
     text = message.text.split(None, 1)[1]
-    if text:
-        await message.reply_text(
-            "**ᴜᴛᴀɢ [ᴜɴʟɪᴍɪᴛᴇᴅ ᴛᴀɢ] sᴛᴀʀᴛᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ!**\n\n**๏ ᴛᴀɢɢɪɴɢ ᴡɪᴛʜ sʟᴇᴇᴘ ᴏғ 7 sᴇᴄ.**\n\n**➥ ᴏғғ ᴛᴀɢɢɪɴɢ ʙʏ » /stoputag**"
-        )
 
-    SPAM_CHATS[chat_id] = True
-    f = True
-    while f:
-        if SPAM_CHATS.get(chat_id) == False:
-            await message.reply_text("**ᴜɴʟɪᴍɪᴛᴇᴅ ᴛᴀɢɢɪɴɢ sᴜᴄᴄᴇssғᴜʟʟʏ sᴛᴏᴘᴘᴇᴅ.**")
-            break
-        usernum = 0
-        usertxt = ""
+    if chat_id in UTAG_TASKS:
+        return await message.reply_text("**Proses utag sudah berjalan! Gunakan `/stoputag` untuk menghentikan.**")
+
+    await message.reply_text(
+        "**Utag dimulai!**\n➥ `sleep 7 detik`\n➥ Gunakan `/stoputag` untuk menghentikan."
+    )
+
+    async def tag_loop():
         try:
-            async for m in app.get_chat_members(message.chat.id):
+            usernum = 0
+            usertxt = ""
+            async for m in app.get_chat_members(chat_id):
+                if chat_id not in UTAG_TASKS:
+                    break
                 if m.user.is_bot:
                     continue
                 usernum += 1
-                usertxt += f"\n⊚ [{m.user.first_name}](tg://user?id={m.user.id})\n"
+                usertxt += f"• [{m.user.first_name}](tg://user?id={m.user.id})\n"
                 if usernum == 5:
                     await app.send_message(
-                        message.chat.id,
-                        f"{text}\n{usertxt}\n\n|| ➥ ᴏғғ ᴛᴀɢɢɪɴɢ ʙʏ » /stoputag ||",
+                        chat_id,
+                        f"{text}\n\n{usertxt}\n\nGunakan /stoputag untuk menghentikan.",
+                        disable_web_page_preview=True,
                     )
+                    await asyncio.sleep(7)
                     usernum = 0
                     usertxt = ""
-                    await asyncio.sleep(7)
         except Exception as e:
-            print(e)
+            print(f"Utag error: {e}")
+        finally:
+            UTAG_TASKS.pop(chat_id, None)
+            await app.send_message(chat_id, "**Utag selesai atau dihentikan.**")
+
+    # Simpan task
+    task = asyncio.create_task(tag_loop())
+    UTAG_TASKS[chat_id] = task
 
 
 @app.on_message(
-    filters.command(
-        ["stoputag", "stopuall", "offutag", "offuall", "utagoff", "ualloff"],
-        prefixes=["/", ".", "@", "#"],
-    )
+    filters.command(["stoputag", "stopuall", "offutag", "offuall", "utagoff", "ualloff"], prefixes=["/", ".", "@", "#"])
     & admin_filter
 )
 async def stop_tagging(_, message):
-    global SPAM_CHATS
     chat_id = message.chat.id
-    if SPAM_CHATS.get(chat_id) == True:
-        SPAM_CHATS[chat_id] = False
-        return await message.reply_text("**ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ sᴛᴏᴘᴘɪɴɢ ᴜɴʟɪᴍɪᴛᴇᴅ ᴛᴀɢɢɪɴɢ...**")
+    task = UTAG_TASKS.get(chat_id)
+    if task:
+        task.cancel()
+        UTAG_TASKS.pop(chat_id, None)
+        await message.reply_text("**Berhasil menghentikan utag njing.**")
     else:
-        await message.reply_text("**ᴜᴛᴀɢ ᴘʀᴏᴄᴇss ɪs ɴᴏᴛ ᴀᴄᴛɪᴠᴇ**")
+        await message.reply_text("**Tidak ada proses utag yang sedang berjalan.**")
