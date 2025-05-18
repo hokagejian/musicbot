@@ -9,6 +9,7 @@ ydl_opts = {
     "quiet": True,
     "no_warnings": True,
     "prefer_ffmpeg": True,
+    "cookies": "BrandedXmusic.txt",  # <-- Tambahkan baris ini
     "postprocessors": [
         {
             "key": "FFmpegExtractAudio",
@@ -18,7 +19,6 @@ ydl_opts = {
     ],
 }
 ydl = YoutubeDL(ydl_opts)
-
 
 def audio_dl(url: str) -> str:
     sin = ydl.extract_info(url, False)
