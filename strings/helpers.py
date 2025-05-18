@@ -1,3 +1,4 @@
+HELP_11 = """
 /play atau /vplay : Memulai streaming lagu yang diminta di videochat.
 /playforce atau /vplayforce : Menghentikan streaming yang sedang berjalan dan memulai lagu yang diminta.
 """
