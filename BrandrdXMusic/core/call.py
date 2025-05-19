@@ -134,24 +134,14 @@ class Call(PyTgCalls):
         try:
             if config.STRING1:
                 await self.one.leave_group_call(chat_id)
-        except:
-            pass
-        try:
             if config.STRING2:
                 await self.two.leave_group_call(chat_id)
-        except:
-            pass
-        try:
             if config.STRING3:
                 await self.three.leave_group_call(chat_id)
-        except:
-            pass
-        try:
             if config.STRING4:
                 await self.four.leave_group_call(chat_id)
-        except:
-            pass
-        try:
             if config.STRING5:
-                await self.five
+                await self.five.leave_group_call(chat_id)
+        except Exception as e:
+            print(f"Error: {e}")
 ```
