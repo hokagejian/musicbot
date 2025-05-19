@@ -144,4 +144,3 @@ class Call(PyTgCalls):
                 await self.five.leave_group_call(chat_id)
         except Exception as e:
             print(f"Error: {e}")
-```
